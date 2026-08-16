@@ -1,19 +1,194 @@
 import type { Collector, StatusKind } from './collector';
 
-const PANEL_STYLE =
-  'position: fixed; bottom: 20px; right: 20px; width: 400px; max-height: 520px; ' +
-  'background: #fff; border: 1px solid #ddd; border-radius: 8px; ' +
-  'box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 12px; z-index: 99999; ' +
-  "font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; " +
-  'display: flex; flex-direction: column; gap: 8px; box-sizing: border-box;';
+/**
+ * 全局样式（注入 <style>，类名前缀 dvs- 避免与页面冲突）。
+ * 主题：Bilibili 粉（#fb7299）渐变 + 圆角卡片 + 轻量动效。
+ */
+const GLOBAL_CSS = `
+.dvs-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 400px;
+  background: #fff;
+  border: 1px solid rgba(251, 114, 153, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 99999;
+  font-family: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: dvs-pop 0.25s ease;
+}
+@keyframes dvs-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.dvs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #fb7299 0%, #ff9db0 100%);
+}
+.dvs-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+.dvs-collapse {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+.dvs-collapse:hover { background: rgba(255, 255, 255, 0.4); }
+.dvs-collapse:active { transform: scale(0.9); }
+.dvs-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+.dvs-uid-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dvs-uid-label {
+  white-space: nowrap;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+}
+.dvs-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dvs-input:focus {
+  border-color: #fb7299;
+  box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.15);
+}
+.dvs-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 13px;
+}
+.dvs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  flex: none;
+  transition: background 0.25s;
+}
+.dvs-textarea {
+  width: 100%;
+  height: 180px;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: Consolas, monospace;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dvs-textarea:focus {
+  border-color: #fb7299;
+  box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.12);
+}
+.dvs-btn-row {
+  display: flex;
+  gap: 8px;
+}
+.dvs-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s, transform 0.12s;
+}
+.dvs-btn:active { transform: scale(0.97); }
+.dvs-btn-primary {
+  background: linear-gradient(135deg, #fb7299, #ff8fab);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(251, 114, 153, 0.35);
+}
+.dvs-btn-primary:hover { box-shadow: 0 6px 16px rgba(251, 114, 153, 0.5); }
+.dvs-btn-secondary {
+  background: #fff;
+  color: #444;
+  border: 1px solid #e5e7eb;
+}
+.dvs-btn-secondary:hover { border-color: #fb7299; color: #fb7299; }
+/* 缩略态：纯图标圆形按钮（不展示文字） */
+.dvs-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fb7299, #ff8fab);
+  color: #fff;
+  font-size: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(251, 114, 153, 0.45);
+  z-index: 99999;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.dvs-fab:hover { transform: scale(1.1); box-shadow: 0 10px 24px rgba(251, 114, 153, 0.55); }
+.dvs-fab:active { transform: scale(0.94); }
+`;
+
+function injectStyles(css: string): void {
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+}
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
-  style?: string,
+  className?: string,
   text?: string
 ): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
-  if (style) node.style.cssText = style;
+  if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
@@ -28,60 +203,75 @@ export interface PanelHandle {
 }
 
 export function createPanel(collector: Collector, opts: PanelOptions): PanelHandle {
-  const panel = el('div', PANEL_STYLE);
+  injectStyles(GLOBAL_CSS);
 
-  // 标题行（含收起/展开按钮）
-  const titleRow = el('div', 'display: flex; align-items: center; justify-content: space-between; gap: 8px;');
-  titleRow.appendChild(el('div', 'font-weight: bold; font-size: 16px;', '📡 动态视频BV号提取器'));
-  const collapseBtn = el('button', 'padding: 2px 10px; background: #f0f0f0; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 12px;', '⤡ 收起');
-  titleRow.appendChild(collapseBtn);
-  panel.appendChild(titleRow);
+  // ================= 完整面板 =================
 
-  // 可收起的内容区
-  const body = el('div', 'display: flex; flex-direction: column; gap: 8px;');
+  const panel = el('div', 'dvs-panel');
+
+  // 头部：渐变标题栏 + 图标收起按钮
+  const header = el('div', 'dvs-header');
+  header.appendChild(el('div', 'dvs-title', '📡 动态视频BV号提取器'));
+  const collapseBtn = el('button', 'dvs-collapse', '—');
+  collapseBtn.title = '收起为图标按钮';
+  header.appendChild(collapseBtn);
+  panel.appendChild(header);
+
+  // 内容区
+  const body = el('div', 'dvs-body');
 
   // UID 输入行
-  const uidInput = el('input', 'flex: 1; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;') as HTMLInputElement;
+  const uidInput = el('input', 'dvs-input') as HTMLInputElement;
   uidInput.placeholder = 'UP 主 UID（纯数字）';
   uidInput.value = opts.uid;
-  const uidRow = el('div', 'display: flex; align-items: center; gap: 6px;');
-  uidRow.appendChild(el('span', 'white-space: nowrap; color: #555;', 'UID'));
+  const uidRow = el('div', 'dvs-uid-row');
+  uidRow.appendChild(el('span', 'dvs-uid-label', 'UID'));
   uidRow.appendChild(uidInput);
   body.appendChild(uidRow);
 
-  // 状态行
-  const statusDiv = el('div', 'color: #555;', '状态：未启动');
+  // 状态行（带状态圆点）
+  const statusDot = el('span', 'dvs-dot');
+  const statusDiv = el('div', 'dvs-status');
+  statusDiv.append(statusDot, document.createTextNode('状态：未启动'));
   body.appendChild(statusDiv);
 
   // 输出区
-  const output = el('textarea', 'width: 100%; height: 180px; resize: vertical; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; font-family: Consolas, monospace; box-sizing: border-box;') as HTMLTextAreaElement;
+  const output = el('textarea', 'dvs-textarea') as HTMLTextAreaElement;
   output.placeholder = '提取结果将显示在这里（JSON 数组）...';
   output.readOnly = true;
   body.appendChild(output);
 
   // 按钮行
-  const btnRow = el('div', 'display: flex; gap: 8px;');
-  const toggleBtn = el('button', 'flex: 1; padding: 8px 12px; background: #00a1d6; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;', '▶ 启动');
-  const copyBtn = el('button', 'flex: 1; padding: 8px 12px; background: #f0f0f0; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px;', '复制 JSON');
-  const exportBtn = el('button', 'flex: 1; padding: 8px 12px; background: #f0f0f0; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-size: 14px;', '导出文件');
+  const btnRow = el('div', 'dvs-btn-row');
+  const toggleBtn = el('button', 'dvs-btn dvs-btn-primary', '▶ 启动');
+  const copyBtn = el('button', 'dvs-btn dvs-btn-secondary', '复制 JSON');
+  const exportBtn = el('button', 'dvs-btn dvs-btn-secondary', '导出文件');
   btnRow.append(toggleBtn, copyBtn, exportBtn);
   body.appendChild(btnRow);
+
   panel.appendChild(body);
 
-  // ---------- 收起 / 展开 ----------
+  // ================= 缩略态：纯图标圆形按钮 =================
 
-  let collapsed = false;
+  const fab = el('button', 'dvs-fab', '📡');
+  fab.title = '展开采集面板';
+
   const setCollapsed = (value: boolean) => {
-    collapsed = value;
-    body.style.display = value ? 'none' : 'flex';
-    collapseBtn.textContent = value ? '⤢ 展开' : '⤡ 收起';
-    // 收起时面板缩略为仅标题栏的窄条
-    panel.style.width = value ? 'auto' : '400px';
+    panel.style.display = value ? 'none' : 'flex';
+    fab.style.display = value ? 'flex' : 'none';
   };
 
-  collapseBtn.addEventListener('click', () => setCollapsed(!collapsed));
+  collapseBtn.addEventListener('click', () => setCollapsed(true));
+  fab.addEventListener('click', () => setCollapsed(false));
 
-  // ---------- 渲染 ----------
+  // ================= 渲染 =================
+
+  const STATUS_COLORS: Record<StatusKind, string> = {
+    running: '#fb7299',
+    paused: '#f0a020',
+    done: '#22c55e',
+    error: '#ef4444'
+  };
 
   const renderOutput = () => {
     output.value = JSON.stringify(collector.list(), null, 2);
@@ -89,10 +279,10 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   const setStatus = (kind: StatusKind, message: string) => {
     statusDiv.textContent = `状态：${message}`;
-    statusDiv.style.color = kind === 'error' ? '#d33' : kind === 'done' ? '#090' : '#555';
+    statusDot.style.background = STATUS_COLORS[kind];
   };
 
-  // ---------- 事件 ----------
+  // ================= 事件 =================
 
   const start = (uid: string) => {
     toggleBtn.textContent = '⏸ 暂停';
@@ -159,6 +349,9 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   });
 
   return {
-    mount: () => document.body.appendChild(panel)
+    mount: () => {
+      document.body.appendChild(panel);
+      document.body.appendChild(fab);
+    }
   };
 }

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- 美化浮窗 UI：Bilibili 粉渐变主题、圆角卡片、按钮与输入框焦点/悬浮动效
+- 浮窗缩略态改为纯图标圆形按钮（不展示文字），点击图标展开面板
+
 ## [v0.1.0] - 2026-08-16
 
 ### Added
