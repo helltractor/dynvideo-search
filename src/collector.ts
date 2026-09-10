@@ -27,10 +27,6 @@ export class Collector {
   private running = false;
   private paused = false;
 
-  get count(): number {
-    return this.videos.size;
-  }
-
   get isRunning(): boolean {
     return this.running;
   }
@@ -44,16 +40,16 @@ export class Collector {
     return [...this.videos.entries()].map(([bv, title]) => ({ bv, title }));
   }
 
+  /** 清空上一轮结果（开始新一轮采集前调用） */
+  reset(): void {
+    this.videos.clear();
+  }
+
   pause(): void {
     this.paused = true;
   }
 
   resume(): void {
-    this.paused = false;
-  }
-
-  stop(): void {
-    this.running = false;
     this.paused = false;
   }
 
