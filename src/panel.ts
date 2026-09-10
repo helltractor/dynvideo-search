@@ -17,7 +17,8 @@ const GLOBAL_CSS = `
   bottom: 20px;
   width: 420px;
   max-width: calc(100vw - 32px);
-  display: flex;
+  /* 默认收起：只显示右下角图标按钮，由 setCollapsed 切换 */
+  display: none;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(251, 114, 153, 0.18);
@@ -235,7 +236,7 @@ const GLOBAL_CSS = `
   bottom: 20px;
   width: 52px;
   height: 52px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   border: none;
@@ -364,6 +365,9 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   collapseBtn.addEventListener('click', () => setCollapsed(true));
   fab.addEventListener('click', () => setCollapsed(false));
+
+  // 初始收起：脚本加载后只显示图标按钮，点击才展开面板
+  setCollapsed(true);
 
   // ================= 渲染 =================
 
