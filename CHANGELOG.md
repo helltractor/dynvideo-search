@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - UID 输入框支持回车启动
 
 ### Changed
+- 浮窗默认收起为纯图标圆钮，脚本加载后不再自动展开遮挡页面，点击图标才展开
 - 浮窗样式优化：面板最大宽度自适应小屏、结果区自定义滚动条、条目悬浮高亮、面板内样式 reset 防止页面样式污染
 - 输出格式由只读 JSON 文本框改为实时结果列表，JSON 结构保留在「导出 JSON」中
 - 重新启动采集时清空上一轮结果，避免不同 UID 的结果混在一起
