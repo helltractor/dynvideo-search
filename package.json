@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Bilibili 动态视频 BV 号提取器（官方 API + WBI 签名，TypeScript 构建）",
+  "license": "MIT",
   "scripts": {
     "build": "vite build",
     "dev": "vite",
