@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- 结果列表改为可读列表：每行显示序号、BV 号与标题，点击任意一处在新标签页打开视频页
+- 新增结果筛选框（按 BV 号 / 标题关键词过滤）与头部数量徽标
+- 新增「复制 BV」按钮，一键复制全部 BV 号（每行一个）
+- UID 输入框支持回车启动
+
+### Changed
+- 浮窗样式优化：面板最大宽度自适应小屏、结果区自定义滚动条、条目悬浮高亮、面板内样式 reset 防止页面样式污染
+- 输出格式由只读 JSON 文本框改为实时结果列表，JSON 结构保留在「导出 JSON」中
+- 重新启动采集时清空上一轮结果，避免不同 UID 的结果混在一起
+- 版本号、许可证与产物文件名统一由 `package.json` 推导，`vite.config.ts` 不再重复声明
+
+### Fixed
+- 修复状态圆点在首次状态更新后消失的问题（文案改为独立节点更新）
+
+### Removed
+- 移除未被调用的 `Collector.count` getter 与 `Collector.stop()` 方法
+- 移除 `vite.config.ts` 中重复的 `version` / `author` / `license` / `build.fileName` 配置
+- 移除不再使用的 JSON 输出文本框样式
+
 ## [v0.1.1] - 2026-08-16
 
 ### Changed

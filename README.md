@@ -1,6 +1,6 @@
 # dynvideo-search
 
-当前版本：v0.1.0
+当前版本：v0.1.1
 
 一个用于 Bilibili UP 主空间动态页的 Tampermonkey 脚本，通过**官方 API（WBI 签名）**自动分页拉取动态内容，提取带有「动态视频」标识的原创视频 BV 号与标题。
 
@@ -8,8 +8,39 @@
 
 - 适用场景：Bilibili 个人空间动态页抓取
 - 目标：自动发现并提取「动态视频」内容
-- 输出：JSON 数组，包含 `bv` 和 `title`
+- 输出：浮窗实时列表（点击 BV 号或标题直接跳转视频页），可复制 BV 列表 / 导出 JSON
 - 使用方式：浏览器脚本 + Tampermonkey
+
+## 运行流程
+
+```
+main.ts          panel.ts              collector.ts          api.ts          wbi.ts
+解析 URL 中的 UID → 浮窗 UI（输入/状态/结果列表） → 采集状态机（分页/暂停/重试/去重） → 动态 feed 请求 → WBI 签名
+                        ↑                      │
+                        └── onStatus / onProgress 回调 ──┘
+```
+
+1. `main.ts` 从当前 URL 解析 UP 主 UID，创建采集器与浮窗并挂载到页面；
+2. 点击「启动」后，`collector` 分页调用 `api.fetchSpaceFeed`，每页间隔 `PAGE_DELAY`，期间可暂停 / 继续；
+3. `api` 通过 `wbi.signParams` 生成带 `wts` / `w_rid` 的签名参数，mixinKey 缓存 12 小时；
+4. 每页数据经类型过滤、转发过滤、badge 校验、BV 去重后写入内存，并通过回调刷新浮窗状态与结果列表；
+5. 采集结束后可复制 BV 列表或导出 JSON 文件。
+
+## 目录结构
+
+```
+src/
+  main.ts        脚本入口：解析 UID 并挂载浮窗
+  panel.ts       浮窗 UI：状态、结果列表（链接跳转）、筛选、复制 / 导出
+  collector.ts   采集状态机：分页、暂停 / 继续、重试、去重
+  api.ts         动态 feed 接口封装与错误码文案
+  wbi.ts         WBI 签名：mixinKey 计算与缓存
+  config.ts      常量配置：请求间隔、最大页数、重试次数、缓存时长、接口地址
+  types.ts       接口响应与结果类型定义
+  utils/uid.ts   从当前 URL 解析 UP 主 UID
+docs/
+  tech-decision.md  技术选型说明
+```
 
 ## 技术栈（v0.1.0 起）
 
@@ -26,10 +57,11 @@
 - 过滤转发动态，只保留原创视频
 - 检测「动态视频」badge
 - 按 BV 号去重，避免重复记录
-- UID 手动输入（默认从当前页面 URL 自动解析）
+- UID 手动输入（默认从当前页面 URL 自动解析，回车即可启动）
 - 启动 / 暂停 / 继续控制
-- 实时展示当前已提取结果
-- 复制 JSON 到剪贴板 / 导出 JSON 文件
+- 结果列表实时刷新：每行显示序号、BV 号与标题，**点击任意一处在新标签页打开视频**
+- 结果列表支持按 BV 号 / 标题关键词筛选，头部徽标显示已提取数量
+- 一键复制全部 BV 号 / 导出 JSON 文件
 - 浮窗可收起 / 展开，缩略为纯图标圆钮（不展示文字），B 站粉渐变主题
 
 ## 安装方式
@@ -55,8 +87,12 @@ npm run build
 ## 使用说明
 
 1. 打开任意 UP 主空间页（如 `https://space.bilibili.com/2/dynamic`），UID 会自动填入
-2. 也可手动修改 UID 后点击「启动」
-3. 采集完成后复制或导出 JSON
+2. 也可手动修改 UID 后点击「启动」（重新启动会清空上一轮结果）
+3. 采集过程中浮窗实时显示页码、本页新增与累计数量，结果列表即时更新
+4. 点击列表中的 BV 号或标题即可在新标签页打开对应视频；条目较多时可用筛选框按 BV 号 / 标题过滤
+5. 采集完成后点击「复制 BV」复制全部 BV 号（每行一个），或点击「导出 JSON」保存文件
+
+导出的 JSON 结构：
 
 ```json
 [
@@ -80,6 +116,14 @@ npm run build
 
 ### 4. 是否有风控风险
 脚本仅读取公开动态列表接口，不执行任何写操作（不点赞、不评论、不关注），且请求间隔可配置，风险较低。请勿将 `PAGE_DELAY` 调得过小。
+
+## 开发命令
+
+```bash
+npm run dev        # Vite 开发模式（HMR）
+npm run typecheck  # TypeScript 类型检查
+npm run build      # 构建 userscript 产物
+```
 
 ## 许可证
 
