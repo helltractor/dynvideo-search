@@ -1,6 +1,6 @@
 # dynvideo-search
 
-当前版本：v0.1.1
+当前版本：v0.1.2
 
 一个用于 Bilibili UP 主空间动态页的 Tampermonkey 脚本，通过**官方 API（WBI 签名）**自动分页拉取动态内容，提取带有「动态视频」标识的原创视频 BV 号与标题。
 
