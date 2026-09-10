@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v0.1.2] - 2026-09-10
 
 ### Added
 - 结果列表改为可读列表：每行显示序号、BV 号与标题，点击任意一处在新标签页打开视频页
