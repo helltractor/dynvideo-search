@@ -8,7 +8,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vite build -c vite.test.config.ts && node dist-test/functional.test.mjs"
   },
   "devDependencies": {
     "@types/spark-md5": "^3.0.3",
