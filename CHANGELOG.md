@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- 浮窗样式抽离至 `src/ui/styles.ts`，DOM 工具（元素创建 / 视频链接）抽离至 `src/ui/dom.ts`，`panel.ts` 由 510 行减至约 270 行且职责单一
+- UP 主 UID 校验收敛至 `src/utils/uid.ts`（`isValidUid`），消除面板输入校验与 URL 提取两处各自维护正则
+- 控制台日志统一走 `src/shared/logger.ts`：带 `[dynvideo-search]` 前缀，调试日志由 `CONFIG.DEBUG_LOG` 门控（默认关闭，不再污染页面控制台），风控重试与复制失败等失败路径始终告警
+- 补齐 `panel.ts` 内部函数、`wbi.ts` 缓存策略等 JSDoc，移除冗余 `@param` 参数表
+
+### Docs
+- 新增重构前审计报告 `docs/refactor-audit.md`
+- 同步 README 运行流程与目录结构至新的 `ui/` / `shared/` 布局
+
 ## [v0.1.2] - 2026-09-10
 
 ### Added
