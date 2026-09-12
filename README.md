@@ -1,6 +1,6 @@
 # dynvideo-search
 
-当前版本：v0.1.2
+当前版本：v0.1.3
 
 一个用于 Bilibili UP 主空间动态页的 Tampermonkey 脚本，通过**官方 API（WBI 签名）**自动分页拉取动态内容，提取带有「动态视频」标识的原创视频 BV 号与标题。
 
@@ -46,7 +46,7 @@ src/
     uid.ts       UP 主 UID 提取与校验（单一来源）
 docs/
   tech-decision.md    技术选型说明
-  refactor-audit.md   重构前审计报告（v0.2.0.x 分支）
+  refactor-audit.md   重构前审计报告（refactor/v0.1.x 分支）
 ```
 
 ## 技术栈（v0.1.0 起）
