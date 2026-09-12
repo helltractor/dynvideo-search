@@ -1,5 +1,5 @@
 /** 合法 UP 主 UID 形态：纯数字（B 站空间地址 /:uid/ 中的即是 UID） */
-export const UID_PATTERN = /^\d+$/;
+const UID_PATTERN = /^\d+$/;
 
 /**
  * 校验用户输入是否为合法 UID。
