@@ -88,6 +88,10 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   const fab = el('button', 'dvs-fab', '📡');
   fab.title = '展开采集面板';
 
+  /**
+   * 切换浮窗收起态：面板与圆钮互斥显示。
+   * 初始即为收起（脚本加载后只留右下角图标），避免遮挡 B 站页面。
+   */
   const setCollapsed = (value: boolean) => {
     panel.style.display = value ? 'none' : 'flex';
     fab.style.display = value ? 'flex' : 'none';
@@ -101,6 +105,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   // ================= 渲染 =================
 
+  /** 渲染单个结果行：序号 + BV 号 + 标题，后两者均可点击跳转视频页 */
   const renderItem = (video: CollectedVideo, index: number): HTMLElement => {
     const url = VIDEO_URL_PREFIX + video.bv;
     const row = el('div', 'dvs-item');
@@ -114,6 +119,12 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
     return row;
   };
 
+  /**
+   * 按当前筛选词全量重绘结果列表。
+   *
+   * 筛选在客户端做大小写不敏感的子串匹配（BV 号或标题任一命中）。
+   * 重绘前保存 scrollTop、重绘后恢复，避免采集过程中列表频繁刷新导致滚动位置跳动。
+   */
   const renderList = () => {
     const videos = collector.list();
     const keyword = filterInput.value.trim().toLowerCase();
@@ -141,6 +152,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
     list.scrollTop = scrollTop;
   };
 
+  /** 更新状态行：文案 + 状态圆点颜色（kind 与 STATUS_COLORS 对应） */
   const setStatus = (kind: StatusKind, message: string) => {
     statusText.textContent = message;
     statusDot.style.background = STATUS_COLORS[kind];
@@ -148,6 +160,12 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   // ================= 事件 =================
 
+  /**
+   * 启动新一轮采集：清空旧结果并重置筛选，然后交给 collector 分页拉取。
+   *
+   * 状态文案由 hooks 回调驱动；完成或失败后按钮文案复位为「▶ 启动」，
+   * 失败的具体原因经 setStatus('error') 展示在状态行。
+   */
   const start = (uid: string) => {
     collector.reset();
     filterInput.value = '';
@@ -199,6 +217,12 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   filterInput.addEventListener('input', renderList);
 
+  /**
+   * 按钮文案闪现反馈：短暂显示结果文案后恢复原标签。
+   *
+   * 用于复制 / 无结果这类瞬时操作的轻提示，不侵入状态行。
+   * 注意未清除前一次的定时器——1.5 秒内快速连点会以后一次的恢复时间为准，可接受。
+   */
   const flash = (button: HTMLButtonElement, label: string, restore: string) => {
     button.textContent = label;
     setTimeout(() => (button.textContent = restore), 1500);

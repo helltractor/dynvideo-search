@@ -5,8 +5,9 @@ import type { SpaceFeedResponse } from './types';
 
 /**
  * 拉取 UP 主空间动态（分页）。
- * @param uid UP 主 UID
- * @param offset 上一页返回的 offset（空串表示第一页）
+ *
+ * offset 为上一页返回的分页游标，首页传空串；
+ * 非零 code 不抛 HTTP 错误而是抛出带业务 code 的 {@link ApiError}，由调用方决定重试策略。
  */
 export async function fetchSpaceFeed(uid: string, offset: string): Promise<SpaceFeedResponse> {
   const params: Record<string, string> = {

@@ -48,6 +48,12 @@ function calcMixinKey(keys: WbiKeys): string {
   return MIXIN_KEY_ENC_TAB.map((i) => raw[i]).join('').slice(0, 32);
 }
 
+/**
+ * 获取 mixinKey（带 12 小时内存缓存）。
+ *
+ * WBI 密钥由 B 站每日轮换，但签名校验对旧密钥有宽限期，
+ * 缓存 TTL 取 12 小时（CONFIG.WBI_CACHE_TTL）在有效性与请求量之间折中。
+ */
 async function getMixinKey(): Promise<string> {
   const now = Date.now();
   if (cache && cache.expiresAt > now) return cache.mixinKey;
