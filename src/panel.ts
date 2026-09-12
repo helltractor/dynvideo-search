@@ -1,5 +1,6 @@
 import type { Collector, StatusKind } from './collector';
 import type { CollectedVideo } from './types';
+import { logWarn } from './shared/logger';
 import { el, videoLink } from './ui/dom';
 import { injectGlobalStyles } from './ui/styles';
 import { isValidUid } from './utils/uid';
@@ -213,7 +214,11 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
     navigator.clipboard
       .writeText(text)
       .then(() => flash(copyBtn, `已复制 ${videos.length} 个`, '复制 BV'))
-      .catch(() => flash(copyBtn, '复制失败', '复制 BV'));
+      .catch((err: unknown) => {
+        // 失败路径必须留痕：按钮闪现之外，控制台至少告警一次
+        logWarn('复制 BV 号失败', err);
+        flash(copyBtn, '复制失败', '复制 BV');
+      });
   });
 
   exportBtn.addEventListener('click', () => {
