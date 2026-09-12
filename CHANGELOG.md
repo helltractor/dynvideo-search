@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v0.1.3] - 2026-09-12
 
 ### Changed
 - 浮窗样式抽离至 `src/ui/styles.ts`，DOM 工具（元素创建 / 视频链接）抽离至 `src/ui/dom.ts`，`panel.ts` 由 510 行减至约 270 行且职责单一

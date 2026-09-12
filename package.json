@@ -1,6 +1,6 @@
 {
   "name": "dynvideo-search",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "Bilibili 动态视频 BV 号提取器（官方 API + WBI 签名，TypeScript 构建）",
