@@ -1,5 +1,6 @@
 import { CONFIG } from './config';
 import { fetchSpaceFeed, describeApiError } from './api';
+import { logDebug, logWarn } from './shared/logger';
 import { ApiError, DYNAMIC_TYPE_AV } from './types';
 import type { CollectedVideo, DynItem, SpaceFeedResponse } from './types';
 
@@ -79,7 +80,7 @@ export class Collector {
         page++;
 
         hooks.onProgress?.({ page, added, total: this.videos.size });
-        console.log(`📄 第 ${page} 页：新增 ${added} 个，累计 ${this.videos.size} 个`);
+        logDebug(`第 ${page} 页：新增 ${added} 个，累计 ${this.videos.size} 个`);
 
         if (this.running && hasMore) {
           await this.waitWhilePaused();
@@ -113,8 +114,8 @@ export class Collector {
       } catch (err) {
         if (err instanceof ApiError && err.code === -352 && riskRetries < CONFIG.RISK_RETRY) {
           riskRetries++;
-          console.warn(
-            `⚠️ 触发风控，${riskRetries * 5} 秒后重试（${riskRetries}/${CONFIG.RISK_RETRY}）`
+          logWarn(
+            `触发风控，${riskRetries * 5} 秒后重试（${riskRetries}/${CONFIG.RISK_RETRY}）`
           );
           await sleep(5000 * riskRetries);
           continue;
@@ -146,7 +147,7 @@ export class Collector {
       if (this.videos.has(archive.bvid)) continue;
       this.videos.set(archive.bvid, title);
       added++;
-      console.log(`🆕 ${archive.bvid} | ${title}`);
+      logDebug(`提取 ${archive.bvid} | ${title}`);
     }
     return added;
   }
