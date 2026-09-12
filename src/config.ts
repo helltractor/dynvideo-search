@@ -11,7 +11,9 @@ export const CONFIG = {
   /** 网络瞬时错误的最大重试次数 */
   NETWORK_RETRY: 2,
   /** WBI 密钥缓存时长（毫秒），密钥每天轮换 */
-  WBI_CACHE_TTL: 12 * 60 * 60 * 1000
+  WBI_CACHE_TTL: 12 * 60 * 60 * 1000,
+  /** 是否输出调试日志（分页进度、逐条提取），排查问题时打开 */
+  DEBUG_LOG: false
 } as const;
 
 /** Bilibili 接口地址 */

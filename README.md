@@ -1,6 +1,6 @@
 # dynvideo-search
 
-当前版本：v0.1.2
+当前版本：v0.1.3
 
 一个用于 Bilibili UP 主空间动态页的 Tampermonkey 脚本，通过**官方 API（WBI 签名）**自动分页拉取动态内容，提取带有「动态视频」标识的原创视频 BV 号与标题。
 
@@ -14,10 +14,10 @@
 ## 运行流程
 
 ```
-main.ts          panel.ts              collector.ts          api.ts          wbi.ts
-解析 URL 中的 UID → 浮窗 UI（输入/状态/结果列表） → 采集状态机（分页/暂停/重试/去重） → 动态 feed 请求 → WBI 签名
-                        ↑                      │
-                        └── onStatus / onProgress 回调 ──┘
+main.ts        panel.ts (+ ui/)          collector.ts          api.ts          wbi.ts
+解析 URL 中的 UID → 浮窗 UI（样式注入/DOM 工具/输入/状态/结果列表） → 采集状态机（分页/暂停/重试/去重） → 动态 feed 请求 → WBI 签名
+                      ↑                      │
+                      └── onStatus / onProgress 回调 ──┘
 ```
 
 1. `main.ts` 从当前 URL 解析 UP 主 UID，创建采集器与浮窗并挂载到页面；
@@ -30,16 +30,23 @@ main.ts          panel.ts              collector.ts          api.ts          wbi
 
 ```
 src/
-  main.ts        脚本入口：解析 UID 并挂载浮窗
+  main.ts        脚本入口：开启调试日志、解析 UID 并挂载浮窗
   panel.ts       浮窗 UI：状态、结果列表（链接跳转）、筛选、复制 / 导出
+  ui/
+    styles.ts    浮窗全局样式（注入 <style>，dvs- 前缀防冲突）
+    dom.ts       DOM 工具：创建元素 / 视频详情页链接
   collector.ts   采集状态机：分页、暂停 / 继续、重试、去重
   api.ts         动态 feed 接口封装与错误码文案
   wbi.ts         WBI 签名：mixinKey 计算与缓存
-  config.ts      常量配置：请求间隔、最大页数、重试次数、缓存时长、接口地址
+  config.ts      常量配置：请求间隔、最大页数、重试次数、缓存时长、调试日志开关、接口地址
+  shared/
+    logger.ts    统一日志：[dynvideo-search] 前缀，调试日志门控 + 失败路径告警
   types.ts       接口响应与结果类型定义
-  utils/uid.ts   从当前 URL 解析 UP 主 UID
+  utils/
+    uid.ts       UP 主 UID 提取与校验（单一来源）
 docs/
-  tech-decision.md  技术选型说明
+  tech-decision.md    技术选型说明
+  refactor-audit.md   重构前审计报告（refactor/v0.1.x 分支）
 ```
 
 ## 技术栈（v0.1.0 起）
