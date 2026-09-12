@@ -1,6 +1,6 @@
 # 重构前审计报告（ts-refactor）
 
-> 审计日期：2026-09-12 ｜ 基线：v0.1.2（3cb9b1e）｜ 分支：v0.2.0.x
+> 审计日期：2026-09-12 ｜ 基线：v0.1.2（3cb9b1e）｜ 分支：refactor/v0.1.x
 > 基线状态：`npm run typecheck` ✓ ／ `npm run build` ✓（40.12 kB）
 > 审计范围：全部 8 个源文件（约 902 行）+ tsconfig / vite.config / package.json / .gitignore / 文档
 
