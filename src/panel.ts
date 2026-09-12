@@ -2,6 +2,7 @@ import type { Collector, StatusKind } from './collector';
 import type { CollectedVideo } from './types';
 import { el, videoLink } from './ui/dom';
 import { injectGlobalStyles } from './ui/styles';
+import { isValidUid } from './utils/uid';
 
 /** 视频详情页地址前缀（BV 号即完整 id） */
 const VIDEO_URL_PREFIX = 'https://www.bilibili.com/video/';
@@ -175,7 +176,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   toggleBtn.addEventListener('click', () => {
     if (!collector.isRunning) {
       const uid = uidInput.value.trim();
-      if (!/^\d+$/.test(uid)) {
+      if (!isValidUid(uid)) {
         setStatus('error', 'UID 无效：请输入纯数字');
         return;
       }
