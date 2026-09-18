@@ -1,7 +1,7 @@
 import { API } from './config';
 import { signParams } from './wbi';
 import { ApiError } from './types';
-import type { SpaceFeedResponse } from './types';
+import type { SpaceFeedResponse, UpCardResponse } from './types';
 
 /**
  * 拉取 UP 主空间动态（分页）。
@@ -29,6 +29,25 @@ export async function fetchSpaceFeed(uid: string, offset: string): Promise<Space
     throw new ApiError(json.code, json.message || '未知错误');
   }
   return json;
+}
+
+/**
+ * 拉取 UP 主头像地址（浮窗缩略态圆钮展示用）。
+ *
+ * 用户卡片接口足够轻量且无需 WBI 签名；失败时由调用方回退默认图标，不阻塞面板。
+ */
+export async function fetchUpFace(uid: string): Promise<string> {
+  const url = `${API.UP_CARD}?mid=${encodeURIComponent(uid)}`;
+  const resp = await fetch(url, { credentials: 'include' });
+  if (!resp.ok) throw new Error(`网络请求失败（HTTP ${resp.status}）`);
+
+  const json = (await resp.json()) as UpCardResponse;
+  if (json.code !== 0) {
+    throw new ApiError(json.code, json.message || '未知错误');
+  }
+  const face = json.data?.card?.face;
+  if (!face) throw new Error('接口未返回头像地址');
+  return face;
 }
 
 /** 将 B 站业务错误码转换为可读提示 */
