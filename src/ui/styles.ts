@@ -223,7 +223,7 @@ const GLOBAL_CSS = `
   color: #444;
 }
 .dvs-btn-secondary:hover { border-color: #fb7299; color: #fb7299; }
-/* 缩略态：纯图标圆形按钮（不展示文字） */
+/* 缩略态：UP 主头像圆形按钮（头像加载失败回退 📡 图标） */
 .dvs-fab {
   position: fixed;
   right: 20px;
@@ -235,6 +235,7 @@ const GLOBAL_CSS = `
   justify-content: center;
   border: none;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #fb7299, #ff8fab);
   color: #fff;
   font-size: 24px;
@@ -245,6 +246,14 @@ const GLOBAL_CSS = `
 }
 .dvs-fab:hover { transform: scale(1.1); box-shadow: 0 10px 24px rgba(251, 114, 153, 0.55); }
 .dvs-fab:active { transform: scale(0.94); }
+.dvs-fab-icon { line-height: 1; }
+.dvs-fab-avatar {
+  display: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
 `;
 
 /**

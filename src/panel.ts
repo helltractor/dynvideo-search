@@ -1,6 +1,7 @@
 import type { Collector, StatusKind } from './collector';
 import type { CollectedVideo } from './types';
 import { logWarn } from './shared/logger';
+import { fetchUpFace } from './api';
 import { el, videoLink } from './ui/dom';
 import { injectGlobalStyles } from './ui/styles';
 import { isValidUid } from './utils/uid';
@@ -83,10 +84,15 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   panel.appendChild(body);
 
-  // ================= 缩略态：纯图标圆形按钮 =================
+  // ================= 缩略态：UP 主头像圆钮（加载失败回退 📡 图标） =================
 
-  const fab = el('button', 'dvs-fab', '📡');
+  const fab = el('button', 'dvs-fab');
   fab.title = '展开采集面板';
+  const fabAvatar = document.createElement('img');
+  fabAvatar.className = 'dvs-fab-avatar';
+  fabAvatar.alt = 'UP 主头像';
+  const fabIcon = el('span', 'dvs-fab-icon', '📡');
+  fab.append(fabAvatar, fabIcon);
 
   /**
    * 切换浮窗收起态：面板与圆钮互斥显示。
@@ -100,8 +106,43 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   collapseBtn.addEventListener('click', () => setCollapsed(true));
   fab.addEventListener('click', () => setCollapsed(false));
 
-  // 初始收起：脚本加载后只显示图标按钮，点击才展开面板
+  /** 当前头像对应的 UID：避免重复请求，并丢弃切换目标后返回的过期结果 */
+  let faceUid = '';
+
+  /** 缩略态圆钮回退为 📡 图标（头像尚未获取或加载失败时） */
+  const showFabIcon = () => {
+    fabAvatar.style.display = 'none';
+    fabIcon.style.display = '';
+  };
+
+  fabAvatar.addEventListener('error', showFabIcon);
+
+  /**
+   * 拉取并展示 UP 主头像，失败时回退图标不阻塞面板。
+   *
+   * 仅在 UID 变化时请求；同一 UID 的失败不再重试，
+   * 避免反复收起 / 展开或重启采集时重复打接口。
+   */
+  const refreshFace = (uid: string) => {
+    if (!isValidUid(uid) || uid === faceUid) return;
+    faceUid = uid;
+    showFabIcon();
+    fetchUpFace(uid)
+      .then((face) => {
+        if (faceUid !== uid) return;
+        fabAvatar.src = face;
+        fabAvatar.style.display = '';
+        fabIcon.style.display = 'none';
+      })
+      .catch((err: unknown) => {
+        // 失败路径留痕：头像属装饰性展示，回退图标后仅告警
+        logWarn('获取 UP 主头像失败，缩略态回退默认图标', err);
+      });
+  };
+
+  // 初始收起：脚本加载后只显示头像圆钮，点击才展开面板
   setCollapsed(true);
+  refreshFace(opts.uid);
 
   // ================= 渲染 =================
 
@@ -171,6 +212,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
     filterInput.value = '';
     renderList();
     toggleBtn.textContent = '⏸ 暂停';
+    refreshFace(uid);
     collector
       .start(uid, {
         onStatus: setStatus,
