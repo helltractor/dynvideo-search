@@ -19,7 +19,12 @@ export default defineConfig({
         match: ['https://space.bilibili.com/*/dynamic*', 'https://space.bilibili.com/*'],
         grant: 'none',
         'run-at': 'document-idle',
-        noframes: true
+        noframes: true,
+        // 直装与自动更新始终指向最新 Release 产物（与 README 安装链接同源）
+        downloadURL:
+          'https://github.com/helltractor/dynvideo-search/releases/latest/download/dynvideo-search.user.js',
+        updateURL:
+          'https://github.com/helltractor/dynvideo-search/releases/latest/download/dynvideo-search.user.js'
       }
     })
   ]

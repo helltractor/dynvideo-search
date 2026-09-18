@@ -163,9 +163,18 @@ const GLOBAL_CSS = `
   gap: 8px;
   padding: 6px 8px;
   border-radius: 8px;
+  cursor: pointer;
   transition: background 0.15s;
 }
 .dvs-item:hover { background: rgba(251, 114, 153, 0.09); }
+.dvs-check {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #fb7299;
+  cursor: pointer;
+}
 .dvs-item-idx {
   flex: none;
   width: 20px;
@@ -180,23 +189,28 @@ const GLOBAL_CSS = `
   flex-direction: column;
   min-width: 0;
 }
-.dvs-item-bv {
-  color: #fb7299;
-  font-family: Consolas, 'SFMono-Regular', monospace;
-  font-size: 11.5px;
-  letter-spacing: 0.2px;
-  text-decoration: none;
-}
-.dvs-item-bv:hover { text-decoration: underline; }
+/* B 站视频链接样式：[视频标题] 超链接，悬停显示 BV 号 */
 .dvs-item-title {
   overflow: hidden;
-  color: #2b2f36;
+  color: #fb7299;
   font-size: 12.5px;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-decoration: none;
 }
-.dvs-item-title:hover { color: #fb7299; }
+.dvs-item-title:hover { text-decoration: underline; }
+.dvs-select-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 12px;
+}
+.dvs-select-label { cursor: pointer; user-select: none; }
+.dvs-selected-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
 .dvs-btn-row { display: flex; gap: 8px; }
 .dvs-btn {
   padding: 8px 10px;
@@ -223,7 +237,7 @@ const GLOBAL_CSS = `
   color: #444;
 }
 .dvs-btn-secondary:hover { border-color: #fb7299; color: #fb7299; }
-/* 缩略态：纯图标圆形按钮（不展示文字） */
+/* 缩略态：UP 主头像圆形按钮（头像加载失败回退 📡 图标） */
 .dvs-fab {
   position: fixed;
   right: 20px;
@@ -235,6 +249,7 @@ const GLOBAL_CSS = `
   justify-content: center;
   border: none;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #fb7299, #ff8fab);
   color: #fff;
   font-size: 24px;
@@ -245,6 +260,14 @@ const GLOBAL_CSS = `
 }
 .dvs-fab:hover { transform: scale(1.1); box-shadow: 0 10px 24px rgba(251, 114, 153, 0.55); }
 .dvs-fab:active { transform: scale(0.94); }
+.dvs-fab-icon { line-height: 1; }
+.dvs-fab-avatar {
+  display: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
 `;
 
 /**

@@ -19,5 +19,7 @@ export const CONFIG = {
 /** Bilibili 接口地址 */
 export const API = {
   NAV: 'https://api.bilibili.com/x/web-interface/nav',
-  SPACE_FEED: 'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space'
+  SPACE_FEED: 'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space',
+  /** 用户卡片（含头像），用于缩略态圆钮展示 UP 主头像 */
+  UP_CARD: 'https://api.bilibili.com/x/web-interface/card'
 } as const;

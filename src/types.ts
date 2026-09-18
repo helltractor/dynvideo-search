@@ -67,3 +67,16 @@ export interface SpaceFeedResponse {
   message: string;
   data: SpaceFeedData | null;
 }
+
+// ---------- 用户卡片（UP 主头像） ----------
+
+export interface UpCardResponse {
+  code: number;
+  message: string;
+  data: {
+    card?: {
+      /** 头像图片地址 */
+      face?: string;
+    } | null;
+  } | null;
+}

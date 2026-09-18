@@ -1,6 +1,7 @@
 import type { Collector, StatusKind } from './collector';
 import type { CollectedVideo } from './types';
 import { logWarn } from './shared/logger';
+import { fetchUpFace } from './api';
 import { el, videoLink } from './ui/dom';
 import { injectGlobalStyles } from './ui/styles';
 import { isValidUid } from './utils/uid';
@@ -69,6 +70,20 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   filterInput.style.display = 'none';
   body.appendChild(filterInput);
 
+  // 选择工具行：全选 + 已选计数（有结果时才展示）
+  const selectAllCheck = document.createElement('input');
+  selectAllCheck.type = 'checkbox';
+  selectAllCheck.className = 'dvs-check';
+  selectAllCheck.id = 'dvs-select-all';
+  const selectAllLabel = el('label', 'dvs-select-label', '全选');
+  selectAllLabel.htmlFor = 'dvs-select-all';
+  const selectedCount = el('span', 'dvs-selected-count', '已选 0/0');
+  selectedCount.title = '复制 / 导出仅处理勾选项，未勾选时处理全部';
+  const selectRow = el('div', 'dvs-select-row');
+  selectRow.append(selectAllCheck, selectAllLabel, selectedCount);
+  selectRow.style.display = 'none';
+  body.appendChild(selectRow);
+
   // 结果列表（每行 = BV 号 + 标题，均可点击跳转视频页）
   const list = el('div', 'dvs-list');
   body.appendChild(list);
@@ -83,10 +98,15 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   panel.appendChild(body);
 
-  // ================= 缩略态：纯图标圆形按钮 =================
+  // ================= 缩略态：UP 主头像圆钮（加载失败回退 📡 图标） =================
 
-  const fab = el('button', 'dvs-fab', '📡');
+  const fab = el('button', 'dvs-fab');
   fab.title = '展开采集面板';
+  const fabAvatar = document.createElement('img');
+  fabAvatar.className = 'dvs-fab-avatar';
+  fabAvatar.alt = 'UP 主头像';
+  const fabIcon = el('span', 'dvs-fab-icon', '📡');
+  fab.append(fabAvatar, fabIcon);
 
   /**
    * 切换浮窗收起态：面板与圆钮互斥显示。
@@ -100,43 +120,119 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   collapseBtn.addEventListener('click', () => setCollapsed(true));
   fab.addEventListener('click', () => setCollapsed(false));
 
-  // 初始收起：脚本加载后只显示图标按钮，点击才展开面板
+  /** 当前头像对应的 UID：避免重复请求，并丢弃切换目标后返回的过期结果 */
+  let faceUid = '';
+
+  /** 缩略态圆钮回退为 📡 图标（头像尚未获取或加载失败时） */
+  const showFabIcon = () => {
+    fabAvatar.style.display = 'none';
+    fabIcon.style.display = '';
+  };
+
+  fabAvatar.addEventListener('error', showFabIcon);
+
+  /**
+   * 拉取并展示 UP 主头像，失败时回退图标不阻塞面板。
+   *
+   * 仅在 UID 变化时请求；同一 UID 的失败不再重试，
+   * 避免反复收起 / 展开或重启采集时重复打接口。
+   */
+  const refreshFace = (uid: string) => {
+    if (!isValidUid(uid) || uid === faceUid) return;
+    faceUid = uid;
+    showFabIcon();
+    fetchUpFace(uid)
+      .then((face) => {
+        if (faceUid !== uid) return;
+        fabAvatar.src = face;
+        fabAvatar.style.display = '';
+        fabIcon.style.display = 'none';
+      })
+      .catch((err: unknown) => {
+        // 失败路径留痕：头像属装饰性展示，回退图标后仅告警
+        logWarn('获取 UP 主头像失败，缩略态回退默认图标', err);
+      });
+  };
+
+  // 初始收起：脚本加载后只显示头像圆钮，点击才展开面板
   setCollapsed(true);
+  refreshFace(opts.uid);
 
   // ================= 渲染 =================
 
-  /** 渲染单个结果行：序号 + BV 号 + 标题，后两者均可点击跳转视频页 */
+  /** 勾选集（按 BV 号）：列表重绘与筛选过程中保持勾选状态，重启采集时清空 */
+  const checked = new Set<string>();
+
+  /** 当前筛选视图下的条目（无筛选词时即全部） */
+  const shownVideos = () => {
+    const videos = collector.list();
+    const keyword = filterInput.value.trim().toLowerCase();
+    if (!keyword) return videos;
+    return videos.filter(
+      (video) =>
+        video.bv.toLowerCase().includes(keyword) || video.title.toLowerCase().includes(keyword)
+    );
+  };
+
+  /** 同步选择工具行：已选计数与全选框状态（全选 / 半选 / 未选） */
+  const updateSelectRow = () => {
+    const videos = collector.list();
+    const shown = shownVideos();
+    const checkedShown = shown.filter((video) => checked.has(video.bv)).length;
+    selectedCount.textContent = `已选 ${checked.size}/${videos.length}`;
+    selectAllCheck.checked = shown.length > 0 && checkedShown === shown.length;
+    selectAllCheck.indeterminate = checkedShown > 0 && checkedShown < shown.length;
+  };
+
+  /** 渲染单个结果行：勾选框 + 序号 + [标题] 超链接（B 站视频链接样式，悬停显示 BV 号） */
   const renderItem = (video: CollectedVideo, index: number): HTMLElement => {
     const url = VIDEO_URL_PREFIX + video.bv;
     const row = el('div', 'dvs-item');
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.className = 'dvs-check';
+    check.checked = checked.has(video.bv);
+    check.title = '勾选后可仅复制 / 导出选中项';
+
     const main = el('div', 'dvs-item-main');
-    const bvLink = videoLink('dvs-item-bv', video.bv, url);
-    bvLink.title = '在新标签页打开视频';
-    const titleLink = videoLink('dvs-item-title', video.title, url);
-    titleLink.title = video.title;
-    main.append(bvLink, titleLink);
-    row.append(el('span', 'dvs-item-idx', String(index)), main);
+    const titleLink = videoLink('dvs-item-title', `[${video.title}]`, url);
+    titleLink.title = video.bv;
+    main.appendChild(titleLink);
+
+    /** 勾选状态落库并同步工具行（复选框 change 与整行点击共用） */
+    const toggle = (value: boolean) => {
+      check.checked = value;
+      if (value) checked.add(video.bv);
+      else checked.delete(video.bv);
+      updateSelectRow();
+    };
+
+    check.addEventListener('change', () => toggle(check.checked));
+    // 点击行内空白处切换勾选（点链接跳转、点复选框本身不受影响）
+    row.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target === check || target instanceof HTMLAnchorElement) return;
+      toggle(!check.checked);
+    });
+
+    row.append(check, el('span', 'dvs-item-idx', String(index)), main);
     return row;
   };
 
   /**
    * 按当前筛选词全量重绘结果列表。
    *
-   * 筛选在客户端做大小写不敏感的子串匹配（BV 号或标题任一命中）。
-   * 重绘前保存 scrollTop、重绘后恢复，避免采集过程中列表频繁刷新导致滚动位置跳动。
+   * 重绘前保存 scrollTop、重绘后恢复，避免采集过程中列表频繁刷新导致滚动位置跳动；
+   * 勾选状态不随重绘丢失（由 checked 集合恢复到各行的复选框）。
    */
   const renderList = () => {
     const videos = collector.list();
+    const shown = shownVideos();
     const keyword = filterInput.value.trim().toLowerCase();
-    const shown = keyword
-      ? videos.filter(
-          (video) =>
-            video.bv.toLowerCase().includes(keyword) || video.title.toLowerCase().includes(keyword)
-        )
-      : videos;
 
     countBadge.textContent = String(videos.length);
     filterInput.style.display = videos.length > 0 ? '' : 'none';
+    selectRow.style.display = videos.length > 0 ? '' : 'none';
 
     const scrollTop = list.scrollTop;
     list.replaceChildren();
@@ -150,6 +246,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
       list.appendChild(fragment);
     }
     list.scrollTop = scrollTop;
+    updateSelectRow();
   };
 
   /** 更新状态行：文案 + 状态圆点颜色（kind 与 STATUS_COLORS 对应） */
@@ -168,9 +265,11 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
    */
   const start = (uid: string) => {
     collector.reset();
+    checked.clear();
     filterInput.value = '';
     renderList();
     toggleBtn.textContent = '⏸ 暂停';
+    refreshFace(uid);
     collector
       .start(uid, {
         onStatus: setStatus,
@@ -218,6 +317,19 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
   filterInput.addEventListener('input', renderList);
 
   /**
+   * 全选 / 取消全选：作用于当前筛选视图下的条目（所见即所选）。
+   * 半选状态下点击复选框会置为全选，符合浏览器原生交互。
+   */
+  selectAllCheck.addEventListener('change', () => {
+    const target = selectAllCheck.checked;
+    for (const video of shownVideos()) {
+      if (target) checked.add(video.bv);
+      else checked.delete(video.bv);
+    }
+    renderList();
+  });
+
+  /**
    * 按钮文案闪现反馈：短暂显示结果文案后恢复原标签。
    *
    * 用于复制 / 无结果这类瞬时操作的轻提示，不侵入状态行。
@@ -228,16 +340,24 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
     setTimeout(() => (button.textContent = restore), 1500);
   };
 
-  copyBtn.addEventListener('click', () => {
+  /** 复制 / 导出的目标集：有勾选时仅取勾选项，否则回退全部 */
+  const targetVideos = (): CollectedVideo[] => {
     const videos = collector.list();
+    if (checked.size === 0) return videos;
+    return videos.filter((video) => checked.has(video.bv));
+  };
+
+  copyBtn.addEventListener('click', () => {
+    const videos = targetVideos();
     if (videos.length === 0) {
       flash(copyBtn, '暂无结果', '复制 BV');
       return;
     }
     const text = videos.map((video) => video.bv).join('\n');
+    const scope = checked.size > 0 ? '（勾选）' : '';
     navigator.clipboard
       .writeText(text)
-      .then(() => flash(copyBtn, `已复制 ${videos.length} 个`, '复制 BV'))
+      .then(() => flash(copyBtn, `已复制 ${videos.length} 个${scope}`, '复制 BV'))
       .catch((err: unknown) => {
         // 失败路径必须留痕：按钮闪现之外，控制台至少告警一次
         logWarn('复制 BV 号失败', err);
@@ -247,7 +367,7 @@ export function createPanel(collector: Collector, opts: PanelOptions): PanelHand
 
   exportBtn.addEventListener('click', () => {
     const uid = uidInput.value.trim() || 'unknown';
-    const json = JSON.stringify(collector.list(), null, 2);
+    const json = JSON.stringify(targetVideos(), null, 2);
     const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = el('a');
