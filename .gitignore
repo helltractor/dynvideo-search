@@ -1,5 +1,25 @@
+# 依赖
 node_modules/
+
+# 构建产物
 dist/
 dist-test/
+
+# 环境变量与密钥（本地配置一律不入库）
+.env
+.env.*
+!.env.example
+
+# 本地工具状态
 .mimosa/
 *.log
+
+# 编辑器 / IDE
+.vscode/
+.idea/
+*.sw?
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini

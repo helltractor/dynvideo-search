@@ -3,8 +3,28 @@
   "version": "0.1.3",
   "private": true,
   "type": "module",
-  "description": "Bilibili 动态视频 BV 号提取器（官方 API + WBI 签名，TypeScript 构建）",
+  "description": "Bilibili 动态视频 BV 号提取器：基于官方 API（WBI 签名）自动分页拉取 UP 主动态，提取「动态视频」原创视频 BV 号与标题的 Tampermonkey 用户脚本",
+  "keywords": [
+    "bilibili",
+    "userscript",
+    "tampermonkey",
+    "typescript",
+    "vite",
+    "wbi-signature"
+  ],
+  "homepage": "https://github.com/helltractor/dynvideo-search#readme",
+  "bugs": {
+    "url": "https://github.com/helltractor/dynvideo-search/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/helltractor/dynvideo-search.git"
+  },
   "license": "MIT",
+  "author": "helltractor (https://github.com/helltractor)",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "vite build",
     "dev": "vite",
