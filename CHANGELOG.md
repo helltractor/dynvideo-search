@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+- 安装方式简化为 Tampermonkey 一键直装：README 改为「最新 Release 直装链接」，移除 npm 构建安装说明；脚本头部新增 `@downloadURL` / `@updateURL` 指向最新 Release 产物，支持自动检查更新
+- 浮窗缩略态圆钮由 📡 图标改为 UP 主头像：经用户卡片接口获取（轻量、无需 WBI 签名），加载失败自动回退图标，启动采集时随目标 UID 刷新
+
 ## [v0.1.3] - 2026-09-12
 
 ### Changed

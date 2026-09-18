@@ -24,31 +24,20 @@
 - 结果列表实时刷新：每行显示序号、BV 号与标题，点击任意处在**新标签页**打开视频
 - 结果支持按 BV 号 / 标题关键词筛选，头部徽标显示已提取数量
 - 一键复制全部 BV 号 / 导出 JSON 文件
-- 浮窗默认收起为纯图标圆钮，点击图标展开，B 站粉渐变主题
+- 浮窗默认收起为 UP 主头像圆钮，点击头像展开，B 站粉渐变主题
 
 ## 安装
 
-### 方式一：从 Releases 安装（推荐）
-
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/) 浏览器扩展
-2. 前往 [Releases](https://github.com/helltractor/dynvideo-search/releases/latest) 页面
-3. 下载 `dynvideo-search.user.js`，拖入 Tampermonkey 管理面板安装（或使用「实用工具 → 导入」选择该文件）
+2. 点击一键安装链接：**[📥 dynvideo-search.user.js](https://github.com/helltractor/dynvideo-search/releases/latest/download/dynvideo-search.user.js)**
+3. Tampermonkey 会自动弹出安装确认页，点击「安装」即可
+4. 打开任意 UP 主空间页，右下角会出现 UP 主头像圆钮，点击头像展开面板
 
-### 方式二：从源码构建
-
-```bash
-git clone https://github.com/helltractor/dynvideo-search.git
-cd dynvideo-search
-npm install
-npm run build
-# 产物：dist/dynvideo-search.user.js
-```
-
-构建完成后按方式一第 3 步安装 `dist/dynvideo-search.user.js` 即可。
+> 安装链接始终指向最新 Release；脚本头部已声明下载与更新地址，新版本发布后 Tampermonkey 会自动检查并提示升级。
 
 ## 使用说明
 
-1. 打开任意 UP 主空间页（如 `https://space.bilibili.com/2/dynamic`），右下角会出现一个 📡 图标按钮（浮窗默认收起，不遮挡页面）
+1. 打开任意 UP 主空间页（如 `https://space.bilibili.com/2/dynamic`），右下角会出现 UP 主头像圆钮（浮窗默认收起，不遮挡页面）
 2. 点击图标展开面板，UID 会自动填入
 3. 也可手动修改 UID 后点击「启动」（重新启动会清空上一轮结果）
 4. 采集过程中浮窗实时显示页码、本页新增与累计数量，结果列表即时更新
